@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // Importar a tela de login
+import 'login_screen.dart';
+import 'saude_screen.dart'; // Importar a tela de saúde
 
 class HomeScreen extends StatelessWidget {
   final String token;
@@ -13,8 +14,7 @@ class HomeScreen extends StatelessWidget {
         title: Text('Home'),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
@@ -29,31 +29,20 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             ListTile(
-              title: Text('Item 1'),
+              title: Text('Gerenciar Saúde'),
               onTap: () {
-                // Ação para Item 1
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('Item 2'),
-              onTap: () {
-                // Ação para Item 2
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('Item 3'),
-              onTap: () {
-                // Ação para Item 3
-                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SaudeScreen(token: token),
+                  ),
+                );
               },
             ),
             Spacer(),
             ListTile(
               title: Text('Logout'),
               onTap: () {
-                // Ação de logout
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(

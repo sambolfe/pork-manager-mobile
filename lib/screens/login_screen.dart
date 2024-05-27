@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'home_screen.dart'; // Importar a tela Home
+import 'cadastrar_saude_screen.dart';
+import 'editar_saude_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -66,7 +69,35 @@ class _LoginScreenState extends State<LoginScreen> {
       print('Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');
 
-      // Restante do código de tratamento de resposta...
+      if (response.statusCode == 200) {
+        // Sucesso - Navegar para a tela Home
+        final token = json.decode(response.body)['token'];
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(token: token),
+          ),
+        );
+      } else {
+        // Exibição de erro
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Erro'),
+              content: Text('CPF ou senha inválidos'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Ok'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -91,7 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
