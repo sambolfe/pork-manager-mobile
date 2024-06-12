@@ -8,7 +8,6 @@ import 'cadastrar_saude_screen.dart';
 import 'editar_saude_screen.dart';
 import 'package:intl/intl.dart';
 
-
 class SaudeScreen extends StatefulWidget {
   final String token;
 
@@ -92,52 +91,52 @@ class _SaudeScreenState extends State<SaudeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-        title: Text('Gerenciar Saúde'),
-    ),
-    drawer: Drawer(
-    child: Column(
-    children: <Widget>[
-    DrawerHeader(
-    decoration: BoxDecoration(
-    color: Colors.blue,
-    ),
-    child: Text(
-    'Menu',
-    style: TextStyle(
-    color: Colors.white,
-    fontSize: 24,
-    ),
-    ),
-    ),
-    ListTile(
-    title: Text('Home'),
-    onTap: () {
-    Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-    builder: (context) => HomeScreen(token: widget.token),
-    ),
-    );
-    },
-    ),
-    Spacer(),
-    ListTile(
-    title: Text('Logout'),
-    onTap: () {
-    Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-    builder: (context) => LoginScreen(),
-    ),
-    );
-    },
-    ),
-    ],
-    ),
-    ),
-    body: Center(
-    child: isLoading
-    ? CircularProgressIndicator()
+          title: Text('Gerenciar Saúde'),
+        ),
+        drawer: Drawer(
+          child: Column(
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text(
+                  'Menu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+              ListTile(
+                title: Text('Home'),
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomeScreen(token: widget.token),
+                    ),
+                  );
+                },
+              ),
+              Spacer(),
+              ListTile(
+                title: Text('Logout'),
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        body: Center(
+        child: isLoading
+        ? CircularProgressIndicator()
         : errorMessage != null
     ? Text(errorMessage!)
         : FutureBuilder<List<SaudeItem>>(
@@ -166,7 +165,7 @@ class _SaudeScreenState extends State<SaudeScreen> {
     style: TextStyle(fontWeight: FontWeight.bold),
     ),
     SizedBox(height: 4),
-      Text('Data de Início do Tratamento: ${DateFormat('yyyy-MM-dd').format(item.dataInicioTratamento)}'),
+    Text('Data de Início do Tratamento: ${DateFormat('yyyy-MM-dd').format(item.dataInicioTratamento)}'),
     SizedBox(height: 4),
     Text('Peso: ${item.peso} kg'),
     SizedBox(height: 4),
@@ -181,7 +180,7 @@ class _SaudeScreenState extends State<SaudeScreen> {
     IconButton(
     icon: Icon(Icons.remove_red_eye),
     onPressed: () {
-      if (item.foto != null && item.foto!.isNotEmpty) {
+    if (item.foto != null && item.foto!.isNotEmpty) {
     // Adicione a lógica para exibir a foto
     } else {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -196,9 +195,25 @@ class _SaudeScreenState extends State<SaudeScreen> {
     Navigator.push(
     context,
     MaterialPageRoute(
-    builder: (context) => EditarSaudeScreen(saudeId: item.id, token: widget.token),
+    builder: (context) => EditarSaudeScreen(
+    saudeId: item.id,
+    token: widget.token,
+    tipoTratamento: item.tipoTratamento,
+    observacoes: item.observacoes,
+    dataInicioTratamento: item.dataInicioTratamento,
+    peso: item.peso,
+    dataEntradaCio: item.dataEntradaCio,
+    identificadorOrelha: item.identificadorOrelha,
+    foto: item.foto,
     ),
-    );
+    ),
+    ).then((result) {
+    if (result == true) {
+    setState(() {
+    futureSaudeItems = fetchSaudeItems();
+    });
+    }
+    });
     },
     ),
     IconButton(
@@ -221,8 +236,8 @@ class _SaudeScreenState extends State<SaudeScreen> {
     ],
     ),
     ) ??
-    false) {
-    deleteSaudeItem(item.id);
+        false) {
+      deleteSaudeItem(item.id);
     }
     },
     ),
@@ -234,23 +249,24 @@ class _SaudeScreenState extends State<SaudeScreen> {
     );
     }
     },
-    ),
-    ),
-    bottomNavigationBar: successMessage != null
-    ? Container(
-    color: Colors.green,
-    child: ListTile(
-    title: Text(successMessage!, style: TextStyle(color: Colors.white)),
-    trailing: IconButton(
-      icon: Icon(Icons.close, color: Colors.white),      onPressed: () {
-        setState(() {
-          successMessage = null;
-        });
-      },
-    ),
-    ),
-    )
-        : null,
+        ),
+        ),
+      bottomNavigationBar: successMessage != null
+          ? Container(
+        color: Colors.green,
+        child: ListTile(
+          title: Text(successMessage!, style: TextStyle(color: Colors.white)),
+          trailing: IconButton(
+            icon: Icon(Icons.close, color: Colors.white),
+            onPressed: () {
+              setState(() {
+                successMessage = null;
+              });
+            },
+          ),
+        ),
+      )
+          : null,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -258,7 +274,13 @@ class _SaudeScreenState extends State<SaudeScreen> {
             MaterialPageRoute(
               builder: (context) => CadastrarSaudeScreen(token: widget.token),
             ),
-          );
+          ).then((result) {
+            if (result == true) {
+              setState(() {
+                futureSaudeItems = fetchSaudeItems();
+              });
+            }
+          });
         },
         tooltip: 'Adicionar novo registro de saúde',
         child: Icon(Icons.add),
@@ -266,3 +288,4 @@ class _SaudeScreenState extends State<SaudeScreen> {
     );
   }
 }
+
