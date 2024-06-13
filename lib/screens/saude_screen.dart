@@ -87,170 +87,184 @@ class _SaudeScreenState extends State<SaudeScreen> {
     }
   }
 
+  Future<void> showImageDialog(String fotoUrl) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            constraints: BoxConstraints(maxWidth: 500, maxHeight: 500),
+            child: Image.network(fotoUrl),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Gerenciar Saúde'),
-        ),
-        drawer: Drawer(
-          child: Column(
-            children: <Widget>[
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
+      appBar: AppBar(
+        title: Text('Gerenciar Saúde'),
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
                 ),
-                child: Text(
-                  'Menu',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
+              ),
+            ),
+            ListTile(
+              title: Text('Home'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeScreen(token: widget.token),
                   ),
-                ),
-              ),
-              ListTile(
-                title: Text('Home'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomeScreen(token: widget.token),
-                    ),
-                  );
-                },
-              ),
-              Spacer(),
-              ListTile(
-                title: Text('Logout'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LoginScreen(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+                );
+              },
+            ),
+            Spacer(),
+            ListTile(
+              title: Text('Logout'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LoginScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
-        body: Center(
+      ),
+      body: Center(
         child: isLoading
-        ? CircularProgressIndicator()
-        : errorMessage != null
-    ? Text(errorMessage!)
-        : FutureBuilder<List<SaudeItem>>(
-    future: futureSaudeItems,
-    builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-    return CircularProgressIndicator();
-    } else if (snapshot.hasError) {
-    return Text('Erro: ${snapshot.error}');
-    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-    return Text('Nenhum item encontrado.');
-    } else {
-    return ListView.builder(
-    itemCount: snapshot.data!.length,
-    itemBuilder: (context, index) {
-    final item = snapshot.data![index];
-    return Card(
-    elevation: 3,
-    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-    child: ListTile(
-    title: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-    Text(
-    'Tipo de Tratamento: ${decodeString(item.tipoTratamento)}',
-    style: TextStyle(fontWeight: FontWeight.bold),
-    ),
-    SizedBox(height: 4),
-    Text('Data de Início do Tratamento: ${DateFormat('yyyy-MM-dd').format(item.dataInicioTratamento)}'),
-    SizedBox(height: 4),
-    Text('Peso: ${item.peso} kg'),
-    SizedBox(height: 4),
-    Text('Observações: ${decodeString(item.observacoes)}'),
-    SizedBox(height: 4),
-    Text('Identificador de Orelha: ${item.identificadorOrelha}'),
-    ],
-    ),
-    trailing: Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-    IconButton(
-    icon: Icon(Icons.remove_red_eye),
-    onPressed: () {
-    if (item.foto != null && item.foto!.isNotEmpty) {
-    // Adicione a lógica para exibir a foto
-    } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Foto não disponível')),
-    );
-    }
-    },
-    ),
-    IconButton(
-    icon: Icon(Icons.edit),
-    onPressed: () {
-    Navigator.push(
-    context,
-    MaterialPageRoute(
-    builder: (context) => EditarSaudeScreen(
-    saudeId: item.id,
-    token: widget.token,
-    tipoTratamento: item.tipoTratamento,
-    observacoes: item.observacoes,
-    dataInicioTratamento: item.dataInicioTratamento,
-    peso: item.peso,
-    dataEntradaCio: item.dataEntradaCio,
-    identificadorOrelha: item.identificadorOrelha,
-    foto: item.foto,
-    ),
-    ),
-    ).then((result) {
-    if (result == true) {
-    setState(() {
-    futureSaudeItems = fetchSaudeItems();
-    });
-    }
-    });
-    },
-    ),
-    IconButton(
-    icon: Icon(Icons.delete, color: Colors.red),
-    onPressed: () async {
-    if (await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-    title: Text('Confirmar'),
-    content: Text('Tem certeza que deseja excluir este item?'),
-    actions: <Widget>[
-    TextButton(
-    child: Text('Cancelar'),
-    onPressed: () => Navigator.of(context).pop(false),
-    ),
-    TextButton(
-    child: Text('Excluir'),
-    onPressed: () => Navigator.of(context).pop(true),
-    ),
-    ],
-    ),
-    ) ??
-        false) {
-      deleteSaudeItem(item.id);
-    }
-    },
-    ),
-    ],
-    ),
-    ),
-    );
-    },
-    );
-    }
-    },
+            ? CircularProgressIndicator()
+            : errorMessage != null
+            ? Text(errorMessage!)
+            : FutureBuilder<List<SaudeItem>>(
+          future: futureSaudeItems,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Erro: ${snapshot.error}');
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text('Nenhum item encontrado.');
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  final item = snapshot.data![index];
+                  return Card(
+                    elevation: 3,
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListTile(
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tipo de Tratamento: ${decodeString(item.tipoTratamento)}',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 4),
+                          Text('Data de Início do Tratamento: ${DateFormat('yyyy-MM-dd').format(item.dataInicioTratamento)}'),
+                          SizedBox(height: 4),
+                          Text('Peso: ${item.peso} kg'),
+                          SizedBox(height: 4),
+                          Text('Observações: ${decodeString(item.observacoes)}'),
+                          SizedBox(height: 4),
+                          Text('Identificador de Orelha: ${item.identificadorOrelha}'),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.remove_red_eye),
+                            onPressed: () {
+                              if (item.foto != null && item.foto!.isNotEmpty) {
+                                showImageDialog(item.foto!);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Foto não disponível')),
+                                );
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditarSaudeScreen(
+                                    saudeId: item.id,
+                                    token: widget.token,
+                                    tipoTratamento: item.tipoTratamento,
+                                    observacoes: item.observacoes,
+                                    dataInicioTratamento: item.dataInicioTratamento,
+                                    peso: item.peso,
+                                    dataEntradaCio: item.dataEntradaCio,
+                                    identificadorOrelha: item.identificadorOrelha,
+                                    foto: item.foto,
+                                  ),
+                                ),
+                              ).then((result) {
+                                if (result == true) {
+                                  setState(() {
+                                    futureSaudeItems = fetchSaudeItems();
+                                  });
+                                }
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              if (await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Confirmar'),
+                                  content: Text('Tem certeza que deseja excluir este item?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: Text('Cancelar'),
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                    ),
+                                    TextButton(
+                                      child: Text('Excluir'),
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                    ),
+                                  ],
+                                ),
+                              ) ??
+                                  false) {
+                                deleteSaudeItem(item.id);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }
+          },
         ),
-        ),
+      ),
       bottomNavigationBar: successMessage != null
           ? Container(
         color: Colors.green,
@@ -288,4 +302,3 @@ class _SaudeScreenState extends State<SaudeScreen> {
     );
   }
 }
-

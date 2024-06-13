@@ -30,7 +30,20 @@ class SaudeItem {
       peso: json['peso'].toDouble(),
       dataEntradaCio: json['dataEntradaCio'] != null ? DateTime.parse(json['dataEntradaCio']) : null,
       identificadorOrelha: json['identificadorOrelha'],
-      foto: json['foto'], // Obtenção da foto do JSON
+      foto: json['foto'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'tipoTratamento': tipoTratamento,
+      'observacoes': observacoes,
+      'dataInicioTratamento': dataInicioTratamento.toIso8601String(),
+      'peso': peso,
+      'dataEntradaCio': dataEntradaCio?.toIso8601String(),
+      'identificadorOrelha': identificadorOrelha,
+      'foto': foto,
+    };
   }
 }
