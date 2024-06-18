@@ -1,12 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:pork_manager_mobile/services/saude_item.dart';
+import 'package:intl/intl.dart';
+import 'editar_saude_screen.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'cadastrar_saude_screen.dart';
-import 'editar_saude_screen.dart';
-import 'package:intl/intl.dart';
+import 'package:pork_manager_mobile/services/saude_item.dart';
 
 class SaudeScreen extends StatefulWidget {
   final String token;
@@ -87,18 +89,61 @@ class _SaudeScreenState extends State<SaudeScreen> {
     }
   }
 
+
   Future<void> showImageDialog(String fotoUrl) async {
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: Container(
-            constraints: BoxConstraints(maxWidth: 500, maxHeight: 500),
-            child: Image.network(fotoUrl),
+    // extrair apenas o nome do arquivo da variável fotoUrl usando expressão regular
+    RegExp regex = RegExp(r'[^\\\/]+$');
+    String? nomeArquivo = regex.stringMatch(fotoUrl);
+
+    // verificar se nomeArquivo não é nulo antes de construir a URL
+    if (nomeArquivo != null) {
+      final baseUrl = 'http://10.0.2.2:8080/porkManagerApi/saude/foto/';
+      final url = baseUrl + Uri.encodeComponent(nomeArquivo);
+      print('URL da imagem: $url');
+
+      try {
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {'Authorization': 'Bearer ${widget.token}'},
+        );
+        print('Response status: ${response.statusCode}');
+
+        if (response.statusCode == 200) {
+          // Converter os bytes da imagem em um widget de imagem
+          Uint8List bytes = response.bodyBytes;
+          Image image = Image.memory(bytes);
+
+          // Exibir a imagem em um dialog
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return Dialog(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: 500, maxHeight: 500),
+                  child: image,
+                ),
+              );
+            },
+          );
+        } else {
+          throw Exception('Failed to load image: ${response.statusCode}');
+        }
+      } catch (error) {
+        print('Error loading image: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar imagem. Por favor, tente novamente.'),
           ),
         );
-      },
-    );
+      }
+    } else {
+      print('Nome do arquivo não encontrado.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro: Nome do arquivo da imagem não encontrado.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -167,10 +212,16 @@ class _SaudeScreenState extends State<SaudeScreen> {
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   final item = snapshot.data![index];
+
+                  final imageUrl = item.foto != null && item.foto!.isNotEmpty
+                      ? 'http://10.0.2.2:8080/porkManagerApi/saude/foto/${item.foto}'
+                      : null;
+
                   return Card(
                     elevation: 3,
                     margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ListTile(
+
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -188,21 +239,18 @@ class _SaudeScreenState extends State<SaudeScreen> {
                           Text('Identificador de Orelha: ${item.identificadorOrelha}'),
                         ],
                       ),
+
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: Icon(Icons.remove_red_eye),
-                            onPressed: () {
-                              if (item.foto != null && item.foto!.isNotEmpty) {
+                          if (imageUrl != null) // exibir ícone de olho apenas se houver imagem
+                            IconButton(
+                              icon: Icon(Icons.visibility),
+                              onPressed: () {
                                 showImageDialog(item.foto!);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Foto não disponível')),
-                                );
-                              }
-                            },
-                          ),
+                              },
+                            ),
+
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () {
