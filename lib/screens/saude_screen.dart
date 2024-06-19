@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'editar_saude_screen.dart';
 import 'home_screen.dart';
+import 'editar_saude_screen.dart';
 import 'login_screen.dart';
 import 'cadastrar_saude_screen.dart';
 import 'package:pork_manager_mobile/services/saude_item.dart';
@@ -250,7 +250,6 @@ class _SaudeScreenState extends State<SaudeScreen> {
                                 showImageDialog(item.foto!);
                               },
                             ),
-
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () {
