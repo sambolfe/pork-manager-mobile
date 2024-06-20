@@ -18,18 +18,24 @@ class HomeScreen extends StatelessWidget {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.white, // Definido fundo branco
               ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Image.asset(
+                    'assets/imagens/logo.png',
+                    height: 80,
+                  ),
+                ],
               ),
             ),
             ListTile(
-              title: Text('Gerenciar Saúde'),
+              leading: Icon(Icons.health_and_safety),
+              title: Text(
+                'Gerenciar Saúde',
+                style: TextStyle(color: Colors.black), // Fonte preta
+              ),
               onTap: () {
                 Navigator.push(
                   context,
@@ -41,7 +47,11 @@ class HomeScreen extends StatelessWidget {
             ),
             Spacer(),
             ListTile(
-              title: Text('Logout'),
+              leading: Icon(Icons.logout),
+              title: Text(
+                'Logout',
+                style: TextStyle(color: Colors.black), // Fonte preta
+              ),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
@@ -55,7 +65,32 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       body: Center(
-        child: Text('Bem-vindo!'),
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'Somos uma equipe dedicada ao desenvolvimento de soluções inovadoras para o gerenciamento da criação de suínos.\n\n'
+                    'Combinamos nossa experiência em tecnologia com um profundo conhecimento do setor para oferecer um sistema completo e intuitivo que atenda às necessidades dos criadores.\n\n'
+                    'Junte-se a nós e descubra como podemos ajudar a impulsionar sua produção de suínos para o próximo nível!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black, // Fonte preta
+                ),
+              ),
+              SizedBox(height: 20),
+              Expanded(
+                child: Image.asset(
+                  'assets/imagens/home.jpg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

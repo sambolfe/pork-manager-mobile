@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'home_screen.dart';
-import 'cadastrar_saude_screen.dart';
-
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -25,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final String senha = _passwordController.text.trim();
 
     if (cpf.isEmpty || senha.isEmpty) {
-      // Exibir mensagem de erro caso CPF ou senha estejam vazios
       setState(() {
         _isLoading = false;
       });
@@ -46,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         },
       );
-      return; // Encerrar o método se CPF ou senha estiverem vazios
+      return;
     }
 
     final Map<String, String> requestData = {
@@ -65,11 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
       });
 
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
-        // Sucesso - Navegar para a tela Home
         final token = json.decode(response.body)['token'];
         Navigator.pushReplacement(
           context,
@@ -78,7 +71,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        // Exibição de erro
         showDialog(
           context: context,
           builder: (context) {
@@ -101,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = false;
       });
-      print('Erro de conexão: $e');
       showDialog(
         context: context,
         builder: (context) {
@@ -125,31 +116,74 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              controller: _cpfController,
-              decoration: InputDecoration(labelText: 'CPF'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Senha'),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              child: Text('Entrar'),
-            ),
-          ],
+      backgroundColor: Colors.white,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              // Logo do Pork Manager
+              Image.asset(
+                'assets/imagens/logo.png',
+                height: 150,
+              ),
+              SizedBox(height: 40),
+              // Retângulo com bordas arredondadas para o formulário
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: <Widget>[
+                    // Campo de texto CPF
+                    TextField(
+                      controller: _cpfController,
+                      decoration: InputDecoration(
+                        labelText: 'CPF',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    // Campo de texto Senha
+                    TextField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Senha',
+                        border: OutlineInputBorder(),
+                      ),
+                      obscureText: true,
+                    ),
+                    SizedBox(height: 20),
+                    // Botão de Login
+                    ElevatedButton(
+                      onPressed: _login,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Entrar',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

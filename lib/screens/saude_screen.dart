@@ -155,18 +155,20 @@ class _SaudeScreenState extends State<SaudeScreen> {
       drawer: Drawer(
         child: Column(
           children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
+        DrawerHeader(
+        decoration: BoxDecoration(
+          color: Colors.white,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Image.asset(
+              'assets/imagens/logo.png',
+              height: 80,
             ),
+          ],
+        ),
+      ),
             ListTile(
               title: Text('Home'),
               onTap: () {

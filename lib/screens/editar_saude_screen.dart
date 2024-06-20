@@ -303,7 +303,7 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
                     onPressed: () {
                       setState(() {
                         _selectedImage = null;
-                        _removeImage = true; // Marca a remoção da imagem existente
+                        _removeImage = true; 
                       });
                     },
                     child: Text('Remover Imagem'),
