@@ -1,12 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:http_parser/http_parser.dart';
-import 'dart:io';
-
+import 'package:pork_manager_mobile/services/saude_service.dart';
 
 class EditarSaudeScreen extends StatefulWidget {
   final int saudeId;
@@ -50,98 +49,58 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
   XFile? _selectedImage;
   bool _removeImage = false;
 
+  late SaudeService _saudeService;
+
   @override
   void initState() {
     super.initState();
     _tipoTratamentoController = TextEditingController(text: widget.tipoTratamento);
-    _observacoesController = TextEditingController(text: decodeString(widget.observacoes));
+    _observacoesController = TextEditingController(text: widget.observacoes);
     _dataInicioTratamentoController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(widget.dataInicioTratamento));
     _pesoController = TextEditingController(text: widget.peso.toString());
     _dataEntradaCioController = TextEditingController(
       text: widget.dataEntradaCio != null ? DateFormat('yyyy-MM-dd').format(widget.dataEntradaCio!) : '',
     );
 
+    _saudeService = SaudeService(token: widget.token);
+
     fetchIdentificadoresOrelha();
   }
 
   Future<void> fetchIdentificadoresOrelha() async {
     try {
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/porkManagerApi/suino/getAllIdentificadoresOrelha'),
-        headers: {'Authorization': 'Bearer ${widget.token}'},
-      );
+      List<Map<String, dynamic>> identificadores = await _saudeService.fetchIdentificadoresOrelha();
+      setState(() {
+        identificadoresOrelha = identificadores;
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          identificadoresOrelha = data.map<Map<String, dynamic>>((item) => {
-            'idSuino': item['idSuino'],
-            'identificadorOrelha': item['identificadorOrelha'],
-          }).toList();
-
-          // Set selectedIdSuino baseado no identificadorOrelha
-          final matched = identificadoresOrelha.firstWhere(
-                (item) => item['identificadorOrelha'] == widget.identificadorOrelha,
-            orElse: () => {},
-          );
-          selectedIdSuino = matched.isNotEmpty ? matched['idSuino'] : null;
-        });
-      } else {
-        throw Exception('Failed to load identificadores de orelha');
-      }
+        final matched = identificadoresOrelha.firstWhere(
+              (item) => item['identificadorOrelha'] == widget.identificadorOrelha,
+          orElse: () => {},
+        );
+        selectedIdSuino = matched.isNotEmpty ? matched['idSuino'] : null;
+      });
     } catch (error) {
       print('Erro ao buscar identificadores de orelha: $error');
     }
   }
 
   Future<void> _submitForm() async {
-    final url = Uri.parse('http://10.0.2.2:8080/porkManagerApi/saude/updateSaude/${widget.saudeId}');
-
     try {
-      var request = http.MultipartRequest('PUT', url);
-      request.headers.addAll({
-        'Authorization': 'Bearer ${widget.token}',
-      });
+      await _saudeService.updateSaude(
+        saudeId: widget.saudeId,
+        tipoTratamento: _tipoTratamentoController.text,
+        observacoes: _observacoesController.text,
+        dataInicioTratamento: _dataInicioTratamentoController.text,
+        peso: double.parse(_pesoController.text),
+        idSuino: selectedIdSuino!,
+        removerFoto: _removeImage,
+        novaFotoBytes: _selectedImage != null ? await _selectedImage!.readAsBytes() : null,
+      );
 
-      // Construir o objeto saudeDto como um mapa
-      Map<String, dynamic> fields = {
-        'tipoTratamento': _tipoTratamentoController.text,
-        'observacoes': _observacoesController.text,
-        'dataInicioTratamento': _dataInicioTratamentoController.text,
-        'peso': _pesoController.text,
-        'idSuino': selectedIdSuino.toString(),
-        'removerFoto': _removeImage.toString(),
-      };
-
-      // adicionar campos de texto ao corpo da requisição
-      fields.forEach((key, value) {
-        request.fields[key] = value;
-      });
-
-      // adicionar a imagem ao corpo da requisição se houver uma nova selecionada
-      if (_selectedImage != null) {
-        String fileName = _selectedImage!.path.split('/').last;
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'foto',
-            _selectedImage!.path,
-            filename: fileName,
-            contentType: MediaType('image', 'jpeg'),
-          ),
-        );
-      }
-
-      var response = await http.Response.fromStream(await request.send());
-
-      // Verificar o status da resposta
-      if (response.statusCode == 200) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saúde atualizada com sucesso')),
-        );
-      } else {
-        throw Exception('Failed to update saúde');
-      }
+      Navigator.pop(context, true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saúde atualizada com sucesso')),
+      );
     } catch (e) {
       print('Erro ao enviar os dados: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -155,68 +114,21 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
 
     setState(() {
       _selectedImage = pickedFile as XFile?;
-      _removeImage = false; // Desmarca a remoção da imagem existente se uma nova imagem for selecionada
+      _removeImage = false;
     });
   }
 
   Future<void> showImageDialog(String fotoUrl) async {
-    // extrair apenas o nome do arquivo da variável fotoUrl usando expressão regular
-    RegExp regex = RegExp(r'[^\\\/]+$');
-    String? nomeArquivo = regex.stringMatch(fotoUrl);
-
-    // verificar se nomeArquivo não é nulo antes de construir a URL
-    if (nomeArquivo != null) {
-      final baseUrl = 'http://10.0.2.2:8080/porkManagerApi/saude/foto/';
-      final url = baseUrl + Uri.encodeComponent(nomeArquivo);
-      print('URL da imagem: $url');
-
-      try {
-        final response = await http.get(
-          Uri.parse(url),
-          headers: {'Authorization': 'Bearer ${widget.token}'},
-        );
-        print('Response status: ${response.statusCode}');
-
-        if (response.statusCode == 200) {
-          // Converter os bytes da imagem em um widget de imagem
-          Uint8List bytes = response.bodyBytes;
-          Image image = Image.memory(bytes);
-
-          // Exibir a imagem em um dialog
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return Dialog(
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: 500, maxHeight: 500),
-                  child: image,
-                ),
-              );
-            },
-          );
-        } else {
-          throw Exception('Failed to load image: ${response.statusCode}');
-        }
-      } catch (error) {
-        print('Error loading image: $error');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao carregar imagem. Por favor, tente novamente.'),
-          ),
-        );
-      }
-    } else {
-      print('Nome do arquivo não encontrado.');
+    try {
+      await _saudeService.showImageDialog(context, fotoUrl);
+    } catch (error) {
+      print('Error loading image: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro: Nome do arquivo da imagem não encontrado.'),
+          content: Text('Erro ao carregar imagem. Por favor, tente novamente.'),
         ),
       );
     }
-  }
-
-  String decodeString(String input) {
-    return utf8.decode(input.runes.toList());
   }
 
   @override
@@ -237,7 +149,6 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Construa a URL da foto com o nome do arquivo extraído
     String? nomeArquivo = getFileNameFromUrl(widget.foto);
     String? fotoUrl = nomeArquivo != null ? 'http://10.0.2.2:8080/porkManagerApi/saude/foto/$nomeArquivo' : null;
 
@@ -303,7 +214,7 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
                     onPressed: () {
                       setState(() {
                         _selectedImage = null;
-                        _removeImage = true; 
+                        _removeImage = true;
                       });
                     },
                     child: Text('Remover Imagem'),

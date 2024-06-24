@@ -1,14 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:pork_manager_mobile/services/saude_service.dart';
 
 class CadastrarSaudeScreen extends StatefulWidget {
   final String token;
+
   CadastrarSaudeScreen({required this.token});
 
   @override
@@ -28,9 +31,12 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
   List<Map<String, dynamic>> identificadoresOrelha = [];
   int? selectedIdSuino;
 
+  late final SaudeService _saudeService;
+
   @override
   void initState() {
     super.initState();
+    _saudeService = SaudeService(token: widget.token); // Inicializando _saudeService
     fetchIdentificadoresOrelha();
   }
 
@@ -59,12 +65,6 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
 
   Future<void> _submitForm() async {
     try {
-      final url = Uri.parse('http://10.0.2.2:8080/porkManagerApi/saude/saveSaude');
-
-      var headers = {
-        'Authorization': 'Bearer ${widget.token}',
-      };
-
       // Construir o objeto saudeDto como um mapa
       Map<String, dynamic> fields = {
         'tipoTratamento': _tipoTratamentoController.text,
@@ -74,38 +74,12 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
         'idSuino': selectedIdSuino.toString(),
       };
 
-      // Enviar a requisição
-      var request = http.MultipartRequest('POST', url);
-      request.headers.addAll(headers);
+      // Enviar a requisição usando o serviço SaudeService
+      await _saudeService.cadastrarSaude(fields, _selectedImage);
 
-      // Adicionar campos de texto ao corpo da requisição
-      fields.forEach((key, value) {
-        request.fields[key] = value;
-      });
-
-      // Adicionar a imagem ao corpo da requisição
-      if (_selectedImage != null) {
-        String fileName = _selectedImage!.path.split('/').last;
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'foto',
-            _selectedImage!.path,
-            filename: fileName,
-            contentType: MediaType('image', 'jpeg'),
-          ),
-        );
-      }
-
-      var response = await http.Response.fromStream(await request.send());
-
-      // Verificar o status da resposta
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Cadastro de saúde realizado com sucesso')),
-        );
-      } else {
-        throw Exception('Failed to load data');
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cadastro de saúde realizado com sucesso')),
+      );
     } catch (e) {
       print('Erro ao enviar os dados: $e');
       ScaffoldMessenger.of(context).showSnackBar(

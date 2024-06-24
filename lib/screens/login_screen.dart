@@ -123,13 +123,11 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Logo do Pork Manager
               Image.asset(
                 'assets/imagens/logo.png',
                 height: 150,
               ),
               SizedBox(height: 40),
-              // Retângulo com bordas arredondadas para o formulário
               Container(
                 padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 decoration: BoxDecoration(
@@ -146,7 +144,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 child: Column(
                   children: <Widget>[
-                    // Campo de texto CPF
                     TextField(
                       controller: _cpfController,
                       decoration: InputDecoration(
@@ -155,7 +152,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    // Campo de texto Senha
                     TextField(
                       controller: _passwordController,
                       decoration: InputDecoration(

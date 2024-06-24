@@ -8,7 +8,7 @@ class SaudeItem {
   final double peso;
   final DateTime? dataEntradaCio;
   final String identificadorOrelha;
-  final String? foto; // Adição do campo de foto
+  final String? foto;
 
   SaudeItem({
     required this.id,
@@ -18,7 +18,7 @@ class SaudeItem {
     required this.peso,
     this.dataEntradaCio,
     required this.identificadorOrelha,
-    this.foto, // Atualização do construtor para aceitar foto
+    this.foto,
   });
 
   factory SaudeItem.fromJson(Map<String, dynamic> json) {

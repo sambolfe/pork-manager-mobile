@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import 'saude_screen.dart'; // Importar a tela de saúde
+import 'saude_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final String token;
@@ -34,7 +34,7 @@ class HomeScreen extends StatelessWidget {
               leading: Icon(Icons.health_and_safety),
               title: Text(
                 'Gerenciar Saúde',
-                style: TextStyle(color: Colors.black), // Fonte preta
+                style: TextStyle(color: Colors.black),
               ),
               onTap: () {
                 Navigator.push(
@@ -50,7 +50,7 @@ class HomeScreen extends StatelessWidget {
               leading: Icon(Icons.logout),
               title: Text(
                 'Logout',
-                style: TextStyle(color: Colors.black), // Fonte preta
+                style: TextStyle(color: Colors.black),
               ),
               onTap: () {
                 Navigator.pushReplacement(
@@ -78,7 +78,7 @@ class HomeScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black, // Fonte preta
+                  color: Colors.black,
                 ),
               ),
               SizedBox(height: 20),
