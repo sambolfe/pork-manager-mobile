@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pork_manager_mobile/screens/home_screen.dart';
 import 'editar_saude_screen.dart';
-import 'login_screen.dart';
 import 'cadastrar_saude_screen.dart';
+import 'login_screen.dart';
 import 'package:pork_manager_mobile/models/saude_item.dart';
 import 'package:pork_manager_mobile/services/saude_service.dart';
 
@@ -71,13 +70,13 @@ class _SaudeScreenState extends State<SaudeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gerenciar Saúde'),
+        title: const Text('Gerenciar Saúde'),
       ),
       drawer: Drawer(
         child: Column(
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
               ),
               child: Column(
@@ -91,25 +90,22 @@ class _SaudeScreenState extends State<SaudeScreen> {
               ),
             ),
             ListTile(
-              title: Text('Home'),
+              title: const Text('Home'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.pushReplacementNamed(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => HomeScreen(token: widget.token),
-                  ),
+                  '/home',
+                  arguments: {'token': widget.token},
                 );
               },
             ),
-            Spacer(),
+            const Spacer(),
             ListTile(
-              title: Text('Logout'),
+              title: const Text('Logout'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.pushReplacementNamed(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginScreen(),
-                  ),
+                  '/',
                 );
               },
             ),
@@ -122,70 +118,68 @@ class _SaudeScreenState extends State<SaudeScreen> {
           future: futureSaudeItems,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(child: Text('Erro: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('Nenhum item encontrado.'));
+              return const Center(child: Text('Nenhum item encontrado.'));
             } else {
               return ListView.builder(
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   final item = snapshot.data![index];
-
                   final imageUrl = item.foto != null && item.foto!.isNotEmpty
                       ? 'http://10.0.2.2:8080/porkManagerApi/saude/foto/${item.foto}'
                       : null;
 
                   return Card(
                     elevation: 3,
-                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ListTile(
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Tipo de Tratamento: ${decodeString(item.tipoTratamento)}',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text('Data de Início do Tratamento: ${DateFormat('yyyy-MM-dd').format(item.dataInicioTratamento)}'),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text('Peso: ${item.peso} kg'),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text('Observações: ${decodeString(item.observacoes)}'),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text('Identificador de Orelha: ${item.identificadorOrelha}'),
                         ],
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (imageUrl != null) // exibir ícone de olho apenas se houver imagem
+                          if (imageUrl != null)
                             IconButton(
-                              icon: Icon(Icons.visibility),
+                              icon: const Icon(Icons.visibility),
                               onPressed: () {
                                 showImageDialog(item.foto!);
                               },
                             ),
                           IconButton(
-                            icon: Icon(Icons.edit),
+                            icon: const Icon(Icons.edit),
                             onPressed: () {
-                              Navigator.push(
+                              Navigator.pushNamed(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditarSaudeScreen(
-                                    saudeId: item.id,
-                                    token: widget.token,
-                                    tipoTratamento: item.tipoTratamento,
-                                    observacoes: item.observacoes,
-                                    dataInicioTratamento: item.dataInicioTratamento,
-                                    peso: item.peso,
-                                    dataEntradaCio: item.dataEntradaCio,
-                                    identificadorOrelha: item.identificadorOrelha,
-                                    foto: item.foto,
-                                  ),
-                                ),
+                                '/editar_saude',
+                                arguments: {
+                                  'token': widget.token,
+                                  'saudeId': item.id,
+                                  'tipoTratamento': item.tipoTratamento,
+                                  'observacoes': item.observacoes,
+                                  'dataInicioTratamento': item.dataInicioTratamento,
+                                  'peso': item.peso,
+                                  'dataEntradaCio': item.dataEntradaCio,
+                                  'identificadorOrelha': item.identificadorOrelha,
+                                  'foto': item.foto,
+                                },
                               ).then((result) {
                                 if (result == true) {
                                   refreshSaudeItems();
@@ -194,20 +188,20 @@ class _SaudeScreenState extends State<SaudeScreen> {
                             },
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () async {
                               if (await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: Text('Confirmar'),
-                                  content: Text('Tem certeza que deseja excluir este item?'),
+                                  title: const Text('Confirmar'),
+                                  content: const Text('Tem certeza que deseja excluir este item?'),
                                   actions: <Widget>[
                                     TextButton(
-                                      child: Text('Cancelar'),
+                                      child: const Text('Cancelar'),
                                       onPressed: () => Navigator.of(context).pop(false),
                                     ),
                                     TextButton(
-                                      child: Text('Excluir'),
+                                      child: const Text('Excluir'),
                                       onPressed: () => Navigator.of(context).pop(true),
                                     ),
                                   ],
@@ -232,9 +226,9 @@ class _SaudeScreenState extends State<SaudeScreen> {
           ? Container(
         color: Colors.green,
         child: ListTile(
-          title: Text(successMessage!, style: TextStyle(color: Colors.white)),
+          title: Text(successMessage!, style: const TextStyle(color: Colors.white)),
           trailing: IconButton(
-            icon: Icon(Icons.close, color: Colors.white),
+            icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () {
               setState(() {
                 successMessage = null;
@@ -246,11 +240,10 @@ class _SaudeScreenState extends State<SaudeScreen> {
           : null,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
+          Navigator.pushNamed(
             context,
-            MaterialPageRoute(
-              builder: (context) => CadastrarSaudeScreen(token: widget.token),
-            ),
+            '/cadastrar_saude',
+            arguments: {'token': widget.token},
           ).then((result) {
             if (result == true) {
               refreshSaudeItems();
@@ -258,7 +251,7 @@ class _SaudeScreenState extends State<SaudeScreen> {
           });
         },
         tooltip: 'Adicionar novo registro de saúde',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

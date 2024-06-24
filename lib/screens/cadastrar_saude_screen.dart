@@ -1,12 +1,10 @@
+// cadastrar_saude_screen.dart
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http_parser/http_parser.dart';
 import 'package:pork_manager_mobile/services/saude_service.dart';
 
 class CadastrarSaudeScreen extends StatefulWidget {
@@ -42,22 +40,10 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
 
   Future<void> fetchIdentificadoresOrelha() async {
     try {
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/porkManagerApi/suino/getAllIdentificadoresOrelha'),
-        headers: {'Authorization': 'Bearer ${widget.token}'},
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          identificadoresOrelha = data.map<Map<String, dynamic>>((item) => {
-            'idSuino': item['idSuino'],
-            'identificadorOrelha': item['identificadorOrelha'],
-          }).toList();
-        });
-      } else {
-        throw Exception('Failed to load identificadores de orelha');
-      }
+      List<Map<String, dynamic>> identificadores = await _saudeService.fetchIdentificadoresOrelha();
+      setState(() {
+        identificadoresOrelha = identificadores;
+      });
     } catch (error) {
       print('Erro ao buscar identificadores de orelha: $error');
     }
@@ -65,7 +51,6 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
 
   Future<void> _submitForm() async {
     try {
-      // Construir o objeto saudeDto como um mapa
       Map<String, dynamic> fields = {
         'tipoTratamento': _tipoTratamentoController.text,
         'observacoes': _observacoesController.text,
@@ -74,12 +59,12 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
         'idSuino': selectedIdSuino.toString(),
       };
 
-      // Enviar a requisição usando o serviço SaudeService
       await _saudeService.cadastrarSaude(fields, _selectedImage);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Cadastro de saúde realizado com sucesso')),
       );
+      Navigator.pop(context);
     } catch (e) {
       print('Erro ao enviar os dados: $e');
       ScaffoldMessenger.of(context).showSnackBar(

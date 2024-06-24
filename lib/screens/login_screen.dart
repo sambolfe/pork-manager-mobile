@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -64,11 +63,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final token = json.decode(response.body)['token'];
-        Navigator.pushReplacement(
+        Navigator.pushReplacementNamed(
           context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(token: token),
-          ),
+          '/home',
+          arguments: {'token': token},
         );
       } else {
         showDialog(
@@ -161,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: true,
                     ),
                     SizedBox(height: 20),
-                    // Botão de Login
                     ElevatedButton(
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
@@ -170,7 +167,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: Text(
+                      child: _isLoading
+                          ? CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                          : Text(
                         'Entrar',
                         style: TextStyle(fontSize: 16),
                       ),
