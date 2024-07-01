@@ -1,4 +1,5 @@
 // cadastrar_saude_screen.dart
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -6,12 +7,9 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pork_manager_mobile/services/saude_service.dart';
+import 'package:pork_manager_mobile/services/auth_service.dart';
 
 class CadastrarSaudeScreen extends StatefulWidget {
-  final String token;
-
-  CadastrarSaudeScreen({required this.token});
-
   @override
   _CadastrarSaudeScreenState createState() => _CadastrarSaudeScreenState();
 }
@@ -30,20 +28,50 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
   int? selectedIdSuino;
 
   late final SaudeService _saudeService;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
-    _saudeService = SaudeService(token: widget.token); // Inicializando _saudeService
+    _initServices();
     fetchIdentificadoresOrelha();
+  }
+
+  Future<void> _initServices() async {
+    final token = await _authService.getToken();
+    if (token != null) {
+      _saudeService = SaudeService(token: token);
+    } else {
+      // Redirecionar para tela de login se o token não estiver disponível
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   Future<void> fetchIdentificadoresOrelha() async {
     try {
-      List<Map<String, dynamic>> identificadores = await _saudeService.fetchIdentificadoresOrelha();
-      setState(() {
-        identificadoresOrelha = identificadores;
-      });
+      final token = await _authService.getToken();
+      if (token == null) {
+        // Lida com o caso onde o token não está disponível
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/porkManagerApi/suino/getAllIdentificadoresOrelha'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          identificadoresOrelha = data.map<Map<String, dynamic>>((item) => {
+            'idSuino': item['idSuino'],
+            'identificadorOrelha': item['identificadorOrelha'],
+          }).toList();
+        });
+      } else {
+        throw Exception('Failed to load identificadores de orelha');
+      }
     } catch (error) {
       print('Erro ao buscar identificadores de orelha: $error');
     }
@@ -51,6 +79,7 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
 
   Future<void> _submitForm() async {
     try {
+      // Construir o objeto saudeDto como um mapa
       Map<String, dynamic> fields = {
         'tipoTratamento': _tipoTratamentoController.text,
         'observacoes': _observacoesController.text,
@@ -59,6 +88,7 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
         'idSuino': selectedIdSuino.toString(),
       };
 
+      // Enviar a requisição usando o serviço SaudeService
       await _saudeService.cadastrarSaude(fields, _selectedImage);
 
       ScaffoldMessenger.of(context).showSnackBar(

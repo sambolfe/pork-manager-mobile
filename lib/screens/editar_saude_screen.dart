@@ -4,12 +4,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:http_parser/http_parser.dart';
+import 'package:http/http.dart' as http;
 import 'package:pork_manager_mobile/services/saude_service.dart';
+import 'package:pork_manager_mobile/services/auth_service.dart';
 
 class EditarSaudeScreen extends StatefulWidget {
   final int saudeId;
-  final String token;
   final String tipoTratamento;
   final String observacoes;
   final DateTime dataInicioTratamento;
@@ -21,7 +21,6 @@ class EditarSaudeScreen extends StatefulWidget {
   const EditarSaudeScreen({
     Key? key,
     required this.saudeId,
-    required this.token,
     required this.tipoTratamento,
     required this.observacoes,
     required this.dataInicioTratamento,
@@ -50,6 +49,7 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
   bool _removeImage = false;
 
   late SaudeService _saudeService;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -62,23 +62,50 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
       text: widget.dataEntradaCio != null ? DateFormat('yyyy-MM-dd').format(widget.dataEntradaCio!) : '',
     );
 
-    _saudeService = SaudeService(token: widget.token);
-
+    _initServices();
     fetchIdentificadoresOrelha();
+  }
+
+  Future<void> _initServices() async {
+    final token = await _authService.getToken();
+    if (token != null) {
+      _saudeService = SaudeService(token: token);
+    } else {
+      // Redirecionar para tela de login se o token não estiver disponível
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   Future<void> fetchIdentificadoresOrelha() async {
     try {
-      List<Map<String, dynamic>> identificadores = await _saudeService.fetchIdentificadoresOrelha();
-      setState(() {
-        identificadoresOrelha = identificadores;
+      final token = await _authService.getToken();
+      if (token == null) {
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
 
-        final matched = identificadoresOrelha.firstWhere(
-              (item) => item['identificadorOrelha'] == widget.identificadorOrelha,
-          orElse: () => {},
-        );
-        selectedIdSuino = matched.isNotEmpty ? matched['idSuino'] : null;
-      });
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/porkManagerApi/suino/getAllIdentificadoresOrelha'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          identificadoresOrelha = data.map<Map<String, dynamic>>((item) => {
+            'idSuino': item['idSuino'],
+            'identificadorOrelha': item['identificadorOrelha'],
+          }).toList();
+
+          final matched = identificadoresOrelha.firstWhere(
+                (item) => item['identificadorOrelha'] == widget.identificadorOrelha,
+            orElse: () => {},
+          );
+          selectedIdSuino = matched.isNotEmpty ? matched['idSuino'] : null;
+        });
+      } else {
+        throw Exception('Failed to load identificadores de orelha');
+      }
     } catch (error) {
       print('Erro ao buscar identificadores de orelha: $error');
     }

@@ -1,9 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:pork_manager_mobile/services/auth_service.dart';
 
-class HomeScreen extends StatelessWidget {
-  final String token;
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
-  const HomeScreen({required this.token, Key? key}) : super(key: key);
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final AuthService _authService = AuthService();
+  String? _token;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchToken();
+  }
+
+  Future<void> _fetchToken() async {
+    final token = await _authService.getToken();
+    setState(() {
+      _token = token;
+    });
+    if (token == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  Future<void> _logout() async {
+    await _authService.logout();
+    Navigator.pushReplacementNamed(context, '/login');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +62,15 @@ class HomeScreen extends StatelessWidget {
                 'Gerenciar Saúde',
                 style: TextStyle(color: Colors.black),
               ),
-              onTap: () {
+              onTap: _token != null
+                  ? () {
                 Navigator.pushNamed(
                   context,
                   '/saude',
-                  arguments: {'token': token},
+                  arguments: {'token': _token},
                 );
-              },
+              }
+                  : null,
             ),
             const Spacer(),
             ListTile(
@@ -49,12 +79,7 @@ class HomeScreen extends StatelessWidget {
                 'Logout',
                 style: TextStyle(color: Colors.black),
               ),
-              onTap: () {
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/',
-                );
-              },
+              onTap: _logout,
             ),
           ],
         ),

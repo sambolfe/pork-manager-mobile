@@ -1,6 +1,8 @@
-import 'dart:convert';
+// login_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:pork_manager_mobile/services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -11,104 +13,60 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  final AuthService _authService = AuthService();
 
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
     });
 
-    final String apiUrl = 'http://10.0.2.2:8080/porkManagerApi/auth';
     final String cpf = _cpfController.text.trim();
     final String senha = _passwordController.text.trim();
 
     if (cpf.isEmpty || senha.isEmpty) {
+      _showErrorDialog('Por favor, preencha CPF e senha.');
       setState(() {
         _isLoading = false;
       });
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Erro'),
-            content: Text('Por favor, preencha CPF e senha.'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Ok'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
       return;
     }
 
-    final Map<String, String> requestData = {
-      'cpf': cpf,
-      'senha': senha,
-    };
-
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        body: json.encode(requestData),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (response.statusCode == 200) {
-        final token = json.decode(response.body)['token'];
+      final token = await _authService.login(cpf, senha);
+      if (token != null) {
         Navigator.pushReplacementNamed(
           context,
           '/home',
           arguments: {'token': token},
         );
-      } else {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('Erro'),
-              content: Text('CPF ou senha inválidos'),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('Ok'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
       }
     } catch (e) {
+      _showErrorDialog('CPF ou senha inválidos');
+    } finally {
       setState(() {
         _isLoading = false;
       });
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Erro'),
-            content: Text('Não foi possível conectar ao servidor: $e'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Ok'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Erro'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Ok'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -160,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: _login,
+                      onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                         shape: RoundedRectangleBorder(

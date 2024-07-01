@@ -3,15 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'editar_saude_screen.dart';
 import 'cadastrar_saude_screen.dart';
-import 'login_screen.dart';
 import 'package:pork_manager_mobile/models/saude_item.dart';
 import 'package:pork_manager_mobile/services/saude_service.dart';
+import 'package:pork_manager_mobile/services/auth_service.dart';
 
 class SaudeScreen extends StatefulWidget {
-  final String token;
-  final SaudeService saudeService;
-
-  SaudeScreen({required this.token}) : saudeService = SaudeService(token: token);
+  const SaudeScreen({Key? key}) : super(key: key);
 
   @override
   _SaudeScreenState createState() => _SaudeScreenState();
@@ -22,48 +19,73 @@ String decodeString(String input) {
 }
 
 class _SaudeScreenState extends State<SaudeScreen> {
-  late Future<List<SaudeItem>> futureSaudeItems;
+  late Future<List<SaudeItem>> futureSaudeItems = Future.value([]); // Inicializa com uma lista vazia
   String? errorMessage;
   String? successMessage;
+  SaudeService? _saudeService;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
-    refreshSaudeItems();
+    _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    final token = await _authService.getToken();
+    if (token != null) {
+      setState(() {
+        _saudeService = SaudeService(token: token);
+        refreshSaudeItems();
+      });
+    } else {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   Future<void> refreshSaudeItems() async {
-    setState(() {
-      futureSaudeItems = widget.saudeService.fetchSaudeItems();
-    });
+    if (_saudeService != null) {
+      setState(() {
+        futureSaudeItems = _saudeService!.fetchSaudeItems();
+      });
+    }
   }
 
   Future<void> deleteSaudeItem(int id) async {
-    try {
-      await widget.saudeService.deleteSaudeItem(id);
-      setState(() {
-        refreshSaudeItems();
-        successMessage = 'Item deletado com sucesso!';
-      });
-    } catch (error) {
-      setState(() {
-        errorMessage = 'Erro ao deletar item. Por favor, tente novamente mais tarde.';
-      });
-      print('Error: $error');
+    if (_saudeService != null) {
+      try {
+        await _saudeService!.deleteSaudeItem(id);
+        setState(() {
+          refreshSaudeItems();
+          successMessage = 'Item deletado com sucesso!';
+        });
+      } catch (error) {
+        setState(() {
+          errorMessage = 'Erro ao deletar item. Por favor, tente novamente mais tarde.';
+        });
+        print('Error: $error');
+      }
     }
   }
 
   Future<void> showImageDialog(String fotoUrl) async {
-    try {
-      await widget.saudeService.showImageDialog(context, fotoUrl);
-    } catch (error) {
-      print('Error loading image: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao carregar imagem. Por favor, tente novamente.'),
-        ),
-      );
+    if (_saudeService != null) {
+      try {
+        await _saudeService!.showImageDialog(context, fotoUrl);
+      } catch (error) {
+        print('Error loading image: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar imagem. Por favor, tente novamente.'),
+          ),
+        );
+      }
     }
+  }
+
+  Future<void> _logout() async {
+    await _authService.logout();
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
@@ -95,19 +117,13 @@ class _SaudeScreenState extends State<SaudeScreen> {
                 Navigator.pushReplacementNamed(
                   context,
                   '/home',
-                  arguments: {'token': widget.token},
                 );
               },
             ),
             const Spacer(),
             ListTile(
               title: const Text('Logout'),
-              onTap: () {
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/',
-                );
-              },
+              onTap: _logout,
             ),
           ],
         ),
@@ -170,7 +186,6 @@ class _SaudeScreenState extends State<SaudeScreen> {
                                 context,
                                 '/editar_saude',
                                 arguments: {
-                                  'token': widget.token,
                                   'saudeId': item.id,
                                   'tipoTratamento': item.tipoTratamento,
                                   'observacoes': item.observacoes,
@@ -243,7 +258,6 @@ class _SaudeScreenState extends State<SaudeScreen> {
           Navigator.pushNamed(
             context,
             '/cadastrar_saude',
-            arguments: {'token': widget.token},
           ).then((result) {
             if (result == true) {
               refreshSaudeItems();

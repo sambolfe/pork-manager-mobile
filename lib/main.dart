@@ -23,32 +23,16 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => LoginScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/cadastrar_saude': (context) => CadastrarSaudeScreen(),
+        '/saude': (context) => const SaudeScreen(),
       },
       onGenerateRoute: (settings) {
         switch (settings.name) {
-          case '/home':
-            final args = settings.arguments as Map<String, dynamic>? ?? {};
-            final token = args['token'] as String?;
-            return MaterialPageRoute(
-              builder: (context) => HomeScreen(token: token ?? ''),
-            );
-          case '/cadastrar_saude':
-            final args = settings.arguments as Map<String, dynamic>? ?? {};
-            final token = args['token'] as String?;
-            return MaterialPageRoute(
-              builder: (context) => CadastrarSaudeScreen(token: token ?? ''),
-            );
-          case '/saude':
-            final args = settings.arguments as Map<String, dynamic>? ?? {};
-            final token = args['token'] as String?;
-            return MaterialPageRoute(
-              builder: (context) => SaudeScreen(token: token ?? ''),
-            );
           case '/editar_saude':
             final args = settings.arguments as Map<String, dynamic>? ?? {};
             return MaterialPageRoute(
               builder: (context) => EditarSaudeScreen(
-                token: args['token'],
                 saudeId: args['saudeId'],
                 tipoTratamento: args['tipoTratamento'],
                 observacoes: args['observacoes'],
