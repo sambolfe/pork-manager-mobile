@@ -86,6 +86,7 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
         'dataInicioTratamento': _dataInicioTratamentoController.text,
         'peso': _pesoController.text,
         'idSuino': selectedIdSuino.toString(),
+        'dataEntradaCio': _dataEntradaCioController.text,
       };
 
       // Enviar a requisição usando o serviço SaudeService
@@ -132,13 +133,12 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
         child: ListView(
           children: [
             TextFormField(
-              controller: _pesoController,
-              decoration: InputDecoration(labelText: 'Peso'),
-              keyboardType: TextInputType.number,
-            ),
-            TextFormField(
               controller: _tipoTratamentoController,
               decoration: InputDecoration(labelText: 'Tipo de Tratamento'),
+            ),
+            TextFormField(
+              controller: _observacoesController,
+              decoration: InputDecoration(labelText: 'Observações'),
             ),
             TextFormField(
               controller: _dataInicioTratamentoController,
@@ -157,6 +157,11 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
               },
             ),
             TextFormField(
+              controller: _pesoController,
+              decoration: InputDecoration(labelText: 'Peso'),
+              keyboardType: TextInputType.number,
+            ),
+            TextFormField(
               controller: _dataEntradaCioController,
               decoration: InputDecoration(labelText: 'Data de Entrada em Cio'),
               readOnly: true,
@@ -172,9 +177,21 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
                 }
               },
             ),
-            TextFormField(
-              controller: _observacoesController,
-              decoration: InputDecoration(labelText: 'Observações'),
+            SizedBox(height: 16.0),
+            DropdownButtonFormField<int>(
+              value: selectedIdSuino,
+              decoration: InputDecoration(labelText: 'Identificador de Orelha'),
+              items: identificadoresOrelha.map((item) {
+                return DropdownMenuItem<int>(
+                  value: item['idSuino'],
+                  child: Text(item['identificadorOrelha']),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedIdSuino = value;
+                });
+              },
             ),
             SizedBox(height: 16.0),
             Row(
@@ -195,29 +212,12 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
               ],
             ),
             SizedBox(height: 16.0),
-            _selectedImage != null
-                ? Image.file(
-              File(_selectedImage!.path),
-              height: 200.0,
-              fit: BoxFit.cover,
-            )
-                : Container(),
-            SizedBox(height: 16.0),
-            DropdownButtonFormField<int>(
-              value: selectedIdSuino,
-              decoration: InputDecoration(labelText: 'Identificador de Orelha'),
-              items: identificadoresOrelha.map((item) {
-                return DropdownMenuItem<int>(
-                  value: item['idSuino'],
-                  child: Text(item['identificadorOrelha']),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedIdSuino = value;
-                });
-              },
-            ),
+            if (_selectedImage != null)
+              Image.file(
+                File(_selectedImage!.path),
+                height: 200.0,
+                fit: BoxFit.cover,
+              ),
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _submitForm,

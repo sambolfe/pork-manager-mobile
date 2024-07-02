@@ -28,16 +28,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    await _authService.logout();
-    Navigator.pushReplacementNamed(context, '/login');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Página Inicial'),
       ),
       drawer: Drawer(
         child: Column(
@@ -74,12 +69,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const Spacer(),
             ListTile(
-              leading: const Icon(Icons.logout),
+              leading: const Icon(Icons.logout, color: Colors.black),
               title: const Text(
                 'Logout',
                 style: TextStyle(color: Colors.black),
               ),
-              onTap: _logout,
+              onTap: () async {
+                await _authService.logout();
+                Navigator.pushReplacementNamed(context, '/');
+              },
             ),
           ],
         ),

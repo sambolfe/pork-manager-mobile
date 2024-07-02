@@ -141,52 +141,6 @@ class SaudeService {
     }
   }
 
-  Future<void> updateSaudeItem(int id, Map<String, dynamic> fields, File? imageFile, bool removeImage) async {
-    final url = Uri.parse('http://10.0.2.2:8080/porkManagerApi/saude/updateSaude/$id');
-
-    try {
-      var request = http.MultipartRequest('PUT', url);
-      request.headers.addAll({
-        'Authorization': 'Bearer $token',
-      });
-
-      // Adicionar campos de texto ao corpo da requisição
-      fields.forEach((key, value) {
-        request.fields[key] = value.toString();
-      });
-
-      // Adicionar a imagem ao corpo da requisição se houver uma nova selecionada
-      if (imageFile != null) {
-        String fileName = imageFile.path.split('/').last;
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'foto',
-            imageFile.path,
-            filename: fileName,
-            contentType: MediaType('image', 'jpeg'),
-          ),
-        );
-      }
-
-      // Adicionar flag para remover imagem
-      if (removeImage) {
-        request.fields['removerFoto'] = 'true';
-      }
-
-      var response = await http.Response.fromStream(await request.send());
-
-      // Verificar o status da resposta
-      if (response.statusCode == 200) {
-        print('Saúde atualizada com sucesso');
-      } else {
-        throw Exception('Failed to update saúde');
-      }
-    } catch (e) {
-      print('Erro ao enviar os dados: $e');
-      throw e;
-    }
-  }
-
   Future<List<Map<String, dynamic>>> fetchIdentificadoresOrelha() async {
     final url = Uri.parse('http://10.0.2.2:8080/porkManagerApi/suino/getAllIdentificadoresOrelha');
     try {
@@ -216,6 +170,7 @@ class SaudeService {
     required String tipoTratamento,
     required String observacoes,
     required String dataInicioTratamento,
+    String? dataEntradaCio,
     required double peso,
     required int idSuino,
     required bool removerFoto,
@@ -237,6 +192,10 @@ class SaudeService {
         'idSuino': idSuino.toString(),
         'removerFoto': removerFoto.toString(),
       };
+
+      if (dataEntradaCio != null) {
+        fields['dataEntradaCio'] = dataEntradaCio;
+      }
 
       request.fields.addAll(fields);
 

@@ -122,6 +122,7 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
         idSuino: selectedIdSuino!,
         removerFoto: _removeImage,
         novaFotoBytes: _selectedImage != null ? await _selectedImage!.readAsBytes() : null,
+        dataEntradaCio: _dataEntradaCioController.text,
       );
 
       Navigator.pop(context, true);
@@ -232,6 +233,22 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
                 }
               },
             ),
+            SizedBox(height: 16.0),
+            DropdownButtonFormField<int>(
+              value: selectedIdSuino,
+              decoration: InputDecoration(labelText: 'Identificador de Orelha'),
+              items: identificadoresOrelha.map((item) {
+                return DropdownMenuItem<int>(
+                  value: item['idSuino'],
+                  child: Text(item['identificadorOrelha']),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedIdSuino = value;
+                });
+              },
+            ),
             SizedBox(height: 16),
             if (_selectedImage != null)
               Column(
@@ -281,4 +298,5 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
       ),
     );
   }
+
 }

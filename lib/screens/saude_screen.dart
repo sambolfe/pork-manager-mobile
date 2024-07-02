@@ -19,7 +19,7 @@ String decodeString(String input) {
 }
 
 class _SaudeScreenState extends State<SaudeScreen> {
-  late Future<List<SaudeItem>> futureSaudeItems = Future.value([]); // Inicializa com uma lista vazia
+  late Future<List<SaudeItem>> futureSaudeItems = Future.value([]); // inicializa com uma lista vazia
   String? errorMessage;
   String? successMessage;
   SaudeService? _saudeService;
@@ -112,7 +112,7 @@ class _SaudeScreenState extends State<SaudeScreen> {
               ),
             ),
             ListTile(
-              title: const Text('Home'),
+              title: const Text('Página Inicial'),
               onTap: () {
                 Navigator.pushReplacementNamed(
                   context,
@@ -122,8 +122,15 @@ class _SaudeScreenState extends State<SaudeScreen> {
             ),
             const Spacer(),
             ListTile(
-              title: const Text('Logout'),
-              onTap: _logout,
+              leading: const Icon(Icons.logout, color: Colors.black),
+              title: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.black),
+              ),
+              onTap: () async {
+                await _authService.logout();
+                Navigator.pushReplacementNamed(context, '/');
+              },
             ),
           ],
         ),
@@ -167,6 +174,8 @@ class _SaudeScreenState extends State<SaudeScreen> {
                           Text('Observações: ${decodeString(item.observacoes)}'),
                           const SizedBox(height: 4),
                           Text('Identificador de Orelha: ${item.identificadorOrelha}'),
+                          const SizedBox(height: 4),
+                          Text('Data de Entrada no Cio: ${item.dataEntradaCio != null ? DateFormat('yyyy-MM-dd').format(item.dataEntradaCio!) : 'Não especificada'}'),
                         ],
                       ),
                       trailing: Row(
