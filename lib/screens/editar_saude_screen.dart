@@ -68,7 +68,7 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
   Future<void> _initServices() async {
     final token = await _authService.getToken();
     if (token != null) {
-      _saudeService = SaudeService(token: token);
+      _saudeService = SaudeService();
       await fetchIdentificadoresOrelha();
     } else {
       // Redirecionar para tela de login se o token não estiver disponível

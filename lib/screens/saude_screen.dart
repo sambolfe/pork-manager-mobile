@@ -33,7 +33,7 @@ class _SaudeScreenState extends State<SaudeScreen> {
     final token = await _authService.getToken();
     if (token != null) {
       setState(() {
-        _saudeService = SaudeService(token: token);
+        _saudeService = SaudeService();
         refreshSaudeItems();
       });
     } else {

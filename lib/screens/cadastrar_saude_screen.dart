@@ -37,7 +37,7 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
   Future<void> _initServices() async {
     final token = await _authService.getToken();
     if (token != null) {
-      _saudeService = SaudeService(token: token);
+      _saudeService = SaudeService();
       await fetchIdentificadoresOrelha();
     } else {
       // redireciona para tela de login se o token não estiver disponível
@@ -192,10 +192,12 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
             ),
             SizedBox(height: 16.0),
             if (_selectedImage != null)
-              Image.file(
-                File(_selectedImage!.path),
-                height: 200.0,
-                fit: BoxFit.cover,
+              AspectRatio(
+                aspectRatio: 1,
+                child: Image.file(
+                  File(_selectedImage!.path),
+                  fit: BoxFit.contain,
+                ),
               ),
             SizedBox(height: 16.0),
             ElevatedButton(

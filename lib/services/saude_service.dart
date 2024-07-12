@@ -6,15 +6,21 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pork_manager_mobile/models/saude_item.dart';
+import 'package:pork_manager_mobile/services/auth_service.dart';
 
 class SaudeService {
-  final String token;
+  final AuthService _authService = AuthService();
+  late String _token;
 
-  SaudeService({required this.token});
+  Future<String> _getToken() async {
+    _token = await _authService.getToken() ?? '';
+    return _token;
+  }
 
   Future<List<SaudeItem>> fetchSaudeItems() async {
     final url = 'http://10.0.2.2:8080/porkManagerApi/saude/getAllSaudes';
     try {
+      final token = await _getToken();
       final response = await http.get(
         Uri.parse(url),
         headers: {'Authorization': 'Bearer $token'},
@@ -35,6 +41,7 @@ class SaudeService {
   Future<void> deleteSaudeItem(int id) async {
     final url = 'http://10.0.2.2:8080/porkManagerApi/saude/deleteSaude/$id';
     try {
+      final token = await _getToken(); // Obtenha o token
       final response = await http.delete(
         Uri.parse(url),
         headers: {'Authorization': 'Bearer $token'},
@@ -59,6 +66,7 @@ class SaudeService {
       print('URL da imagem: $url');
 
       try {
+        final token = await _getToken(); // Obtenha o token
         final response = await http.get(
           Uri.parse(url),
           headers: {'Authorization': 'Bearer $token'},
@@ -105,6 +113,7 @@ class SaudeService {
 
     try {
       var request = http.MultipartRequest('POST', url);
+      final token = await _getToken(); // Obtenha o token
       request.headers.addAll({
         'Authorization': 'Bearer $token',
       });
@@ -144,6 +153,7 @@ class SaudeService {
   Future<List<Map<String, dynamic>>> fetchIdentificadoresOrelha() async {
     final url = Uri.parse('http://10.0.2.2:8080/porkManagerApi/suino/getAllIdentificadoresOrelha');
     try {
+      final token = await _getToken(); // Obtenha o token
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer $token'},
@@ -164,7 +174,6 @@ class SaudeService {
     }
   }
 
-
   Future<void> updateSaude({
     required int saudeId,
     required String tipoTratamento,
@@ -180,6 +189,7 @@ class SaudeService {
 
     try {
       var request = http.MultipartRequest('PUT', url);
+      final token = await _getToken(); // Obtenha o token
       request.headers.addAll({
         'Authorization': 'Bearer $token',
       });
