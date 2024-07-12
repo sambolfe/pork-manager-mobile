@@ -63,13 +63,13 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
     );
 
     _initServices();
-    fetchIdentificadoresOrelha();
   }
 
   Future<void> _initServices() async {
     final token = await _authService.getToken();
     if (token != null) {
       _saudeService = SaudeService(token: token);
+      await fetchIdentificadoresOrelha();
     } else {
       // Redirecionar para tela de login se o token não estiver disponível
       Navigator.pushReplacementNamed(context, '/login');
@@ -78,34 +78,16 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
 
   Future<void> fetchIdentificadoresOrelha() async {
     try {
-      final token = await _authService.getToken();
-      if (token == null) {
-        Navigator.pushReplacementNamed(context, '/login');
-        return;
-      }
+      final data = await _saudeService.fetchIdentificadoresOrelha();
+      setState(() {
+        identificadoresOrelha = data;
 
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/porkManagerApi/suino/getAllIdentificadoresOrelha'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          identificadoresOrelha = data.map<Map<String, dynamic>>((item) => {
-            'idSuino': item['idSuino'],
-            'identificadorOrelha': item['identificadorOrelha'],
-          }).toList();
-
-          final matched = identificadoresOrelha.firstWhere(
-                (item) => item['identificadorOrelha'] == widget.identificadorOrelha,
-            orElse: () => {},
-          );
-          selectedIdSuino = matched.isNotEmpty ? matched['idSuino'] : null;
-        });
-      } else {
-        throw Exception('Failed to load identificadores de orelha');
-      }
+        final matched = identificadoresOrelha.firstWhere(
+              (item) => item['identificadorOrelha'] == widget.identificadorOrelha,
+          orElse: () => {},
+        );
+        selectedIdSuino = matched.isNotEmpty ? matched['idSuino'] : null;
+      });
     } catch (error) {
       print('Erro ao buscar identificadores de orelha: $error');
     }
@@ -298,5 +280,4 @@ class _EditarSaudeScreenState extends State<EditarSaudeScreen> {
       ),
     );
   }
-
 }
