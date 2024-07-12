@@ -1,5 +1,3 @@
-// cadastrar_saude_screen.dart
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -42,7 +40,7 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
     if (token != null) {
       _saudeService = SaudeService(token: token);
     } else {
-      // Redirecionar para tela de login se o token não estiver disponível
+      // redireciona para tela de login se o token não estiver disponível
       Navigator.pushReplacementNamed(context, '/login');
     }
   }
@@ -51,7 +49,6 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
     try {
       final token = await _authService.getToken();
       if (token == null) {
-        // Lida com o caso onde o token não está disponível
         Navigator.pushReplacementNamed(context, '/login');
         return;
       }
@@ -89,7 +86,7 @@ class _CadastrarSaudeScreenState extends State<CadastrarSaudeScreen> {
         'dataEntradaCio': _dataEntradaCioController.text,
       };
 
-      // Enviar a requisição usando o serviço SaudeService
+      // Enviar a requisição usando o service SaudeService
       await _saudeService.cadastrarSaude(fields, _selectedImage);
 
       ScaffoldMessenger.of(context).showSnackBar(

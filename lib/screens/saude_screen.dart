@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'editar_saude_screen.dart';
-import 'cadastrar_saude_screen.dart';
 import 'package:pork_manager_mobile/models/saude_item.dart';
 import 'package:pork_manager_mobile/services/saude_service.dart';
 import 'package:pork_manager_mobile/services/auth_service.dart';
@@ -81,11 +79,6 @@ class _SaudeScreenState extends State<SaudeScreen> {
         );
       }
     }
-  }
-
-  Future<void> _logout() async {
-    await _authService.logout();
-    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override

@@ -1,8 +1,5 @@
-// login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:pork_manager_mobile/services/auth_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -37,7 +34,6 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacementNamed(
           context,
           '/home',
-          arguments: {'token': token},
         );
       }
     } catch (e) {
